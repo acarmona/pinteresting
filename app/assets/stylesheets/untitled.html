@@ -1,0 +1,855 @@
+<table width="99%" border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td height="26">
+    	<h2>ALCANCE DE LA REVISIÓN DEL SISTEMA DE CALIDAD</h2>
+    </td>
+  </tr>
+</table>
+<?php
+	// H0005643
+	
+	error_reporting(E_ALL);
+	ini_set('display_errors', TRUE);
+	ini_set('display_startup_errors', TRUE);
+
+	$_drupal = getcwd();
+	$root_drupal = explode('/sites/all/themes/codigovisual/revision', $_drupal);
+
+	if(count($root_drupal) == 1){
+		$root_drupal = explode('\sites\all\themes\codigovisual\revision', $_drupal);
+	}
+
+	$root_drupal = $root_drupal[0];
+	define('DRUPAL_ROOT', $root_drupal);
+
+	require_once DRUPAL_ROOT . '/includes/bootstrap.inc';
+	drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
+
+	global $user;
+
+	$nombre_usu = $codigoh_usu = $codigoh = $codigoh2 = $nombre_apellidos = NULL;
+
+	$usuario_sistema =  $user->uid;
+  $email_usuario =  $user->mail;
+
+  $sql_usu = "SELECT H.field_h_value FROM field_data_field_h AS H WHERE H.entity_type = 'user' AND H.bundle = 'user' AND H.entity_id = '". $user->uid ."' LIMIT 1";
+  $result = db_query($sql_usu);
+
+  $num_rows = $result->rowCount();
+
+  if($num_rows > 0){
+    foreach ($result as $record) {
+      $nombre_usu = $user->name;
+      $codigoh_usu = $record->field_h_value;
+      $codigoh = $record->field_h_value;
+      $codigoh2 = $record->field_h_value;
+
+      $sql_nombre = "SELECT field_nombre_apellidos_value FROM field_data_field_nombre_apellidos WHERE entity_type LIKE 'user'AND bundle LIKE 'user' AND entity_id = '".$user->uid."' LIMIT 1";
+      $result1 = db_query($sql_usu);
+      $num_rows1 = $result1->rowCount();
+      if($num_rows1 > 0){
+        foreach ($result1 as $record1) {
+          $nombre_apellidos = $record1->field_nombre_apellidos_value;
+        }
+      }
+    }
+  }
+	// date_default_timezone_set('Europe/Madrid');
+
+	$sql_h = "SELECT uid FROM  users_roles WHERE rid = 5 AND uid = '".$user->uid."' LIMIT 1";
+	$result = db_query($sql_h);
+
+	$num_rows = $result->rowCount();
+	$acceso_calidad = 0;
+
+	if($num_rows > 0){
+		$acceso_calidad = 1;
+	}
+
+	if ($acceso_calidad == 0){ ?>
+	<p>Tiene restringido el acceso a este apartado. Contacte con el administrador.</p>
+	<?php }else{ 
+
+		require_once 'PHPExcel/Classes/PHPExcel/IOFactory.php';
+		$objPHPExcel = PHPExcel_IOFactory::load("sites/all/themes/codigovisual/revision/RSC-FASE-VI.xlsx");
+
+		$calidad = 0;
+
+		// H0093714
+		$h_calidad = NULL;
+		$que_fila = 0;
+
+		for($row = 2; $row <= 14; $row++){
+			$h = $objPHPExcel->getActiveSheet()->getCell('A'.$row)->getValue();
+
+			$sql_h = "SELECT entity_id FROM field_data_field_h WHERE  entity_type =  'user' AND  bundle =  'user' AND  field_h_value =  '".$h."' LIMIT 1";
+			$result = db_query($sql_h);
+
+			$num_rows = $result->rowCount();
+			
+			if($num_rows > 0){
+				foreach ($result as $record) {
+					if($user->uid == $record->entity_id){
+						$calidad = 1;
+						$que_fila = $row;
+						break;
+					}
+					/*if("H0003217" == $h){
+						$calidad = 1;
+						$h_calidad = $h;
+						$que_fila = $row;
+						break;					
+					}*/
+				}
+			}
+		}
+
+		if($calidad == 1){ ?>
+			
+				<p>1. El estado y los resultados de los objetivos de la calidad y de las actividades de mejora.</p>
+				<ul>
+				  <li><em>Objetivo 1</em> Sistema de Calidad Vialider FASE VI</li>
+				  <li><em>Objetivo 2</em> Sistema de Calidad Vialider FASE VI</li>
+				  <li><em>Objetivo 3</em> Sistema de Calidad Vialider FASE VI</li>
+				  <li><em>Objetivo 4</em> Sistema de Calidad Vialider FASE VI</li>
+				  <li><em>Objetivo 5</em> Sistema de Calidad Vialider FASE VI<br>
+				  </li>
+				</ul>
+				<p>2. Resultado de la auditoria interna <span class="texto-amarillo-bold"><?php // Response.write rsVac(3) ?><?php //echo $objPHPExcel->getActiveSheet()->getCell('D'.$que_fila)->getCalculatedValue(); ?></span><br>
+				  3. Los resultados del proceso de Análisis de Datos:</p>
+				<blockquote>
+				  <p>3.1.Indicadores de calidad Sistema de Calidad Vialider<br>
+				    3.2 El desempeño de los procesos y conformidades del producto (estudio de no conformidades y reclamaciones de procesos 
+				    y productos,...)<br>
+				    3.3 Situación de las Acciones correctivas y Preventivas.<br>
+				    3.4 El desempeño de los proveedores: los registros derivados de la evaluación continuada de los proveedores.</p>
+				</blockquote>
+				<p> 4. Recomendaciones para la mejora.<br>
+				  5. Satisfacción del cliente<br>
+				  6. La Infraestructura: (instalaciones, espacio de trabajo, herramientas y equipo, servicios de apoyo, información, comunicación y medios),<br>
+				  7. Ambiente de trabajo: a fin de determinar si las condiciones del ambiente de trabajo son las adecuadas para lograr satisfacer las necesidades y expectativas de los clientes.<br>
+				  8. Necesidades de recursos<br>
+				  9. Política de calidad<br>
+				  10. Anexos</p>
+				<p class="texto-amarillo">OBSERVACIONES:</p>
+				<ul>
+				  <li>Dado que se realiza también la revisión del sistema de calidad a nivel central, hay datos que se analizarán en el 
+				    informe realizado por el gestor de calidad del grupo y no a través de este informe.</li>
+				  <li>Las conclusiones respecto a los datos de este informe están expuestas en cada uno de los anexos creados al efecto.</li>
+				</ul>
+				<table width="99%" border="0" cellpadding="0" cellspacing="0">
+				  <tr>
+				    <td height="26" class="texto-marron">1. OBJETIVOS DE CALIDAD FASE VI </td>
+				  </tr>
+				</table>
+				<p class="texto-amarillo-bold">Objetivo 1.</p>
+				<p> Mejorar el grado de participación en las acciones promocionales Vialider respecto a las acciones de año 2012 para la línea de 
+				  producto turismo.</p>
+				<p><u><strong>VALOR OBJETIVO:</strong></u> Participación en promociones<br>
+				<ul>
+				  <li>Participar en las tres acciones promocionales propuestas por el coordinador del grupo (Mantenerse para el caso de las empresas que hayan participado en las tres acciones promocionales).</li>
+				</ul>
+				</p>
+				<p><u><strong>PLAZO/FECHA PARA SU CUMPLIMIENTO</strong></u><strong>:</strong> Año 2013<br>
+				</p>
+				<p><u><strong>VARIABLES:</strong></u> Acciones promocionales estacionarias realizadas en el año 2013 en relación a las realizadas en el año 2012 (Primavera, verano, invierno)</p>
+				<table width="99%" border="0" cellpadding="3" cellspacing="5">
+				  <tr>
+				    <td>&nbsp;</td>
+				    <td class="celda_borde_negro"><div align="center">2012</div></td>
+				    <td class="celda_borde_negro"><div align="center">2013</div></td>
+				  </tr>
+				  <tr>
+				    <td class="celda_borde_negro" style="">PERIODO PROMOCIONAL </td>
+				    <td colspan="2" class="celda_borde_negro" style=""><div align="center">Participación en acciones promocionales </div></td>
+				  </tr>
+				  <tr>
+				    <td class="celda_borde_negro">PRIMAVERA</td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php // Response.write rsVac(4) ?>
+				        <?php echo $objPHPExcel->getActiveSheet()->getCell('E'.$que_fila)->getCalculatedValue(); ?>
+				      </div></td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php // Response.write rsVac(7) ?>
+				        <?php echo $objPHPExcel->getActiveSheet()->getCell('H'.$que_fila)->getCalculatedValue(); ?>
+				      </div></td>
+				  </tr>
+				  <tr>
+				    <td class="celda_borde_negro">VERANO</td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php // Response.write rsVac(5) ?>
+				        <?php echo $objPHPExcel->getActiveSheet()->getCell('F'.$que_fila)->getCalculatedValue(); ?>
+				      </div></td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php // Response.write rsVac(8) ?>
+				        <?php echo $objPHPExcel->getActiveSheet()->getCell('I'.$que_fila)->getCalculatedValue(); ?>
+				      </div></td>
+				  </tr>
+				  <tr>
+				    <td class="celda_borde_negro">INVIERNO</td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php // Response.write rsVac(6) ?>
+				        <?php echo $objPHPExcel->getActiveSheet()->getCell('G'.$que_fila)->getCalculatedValue(); ?>
+				      </div></td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php // Response.write rsVac(9) ?>
+				        <?php echo $objPHPExcel->getActiveSheet()->getCell('J'.$que_fila)->getCalculatedValue(); ?>
+				      </div></td>
+				  </tr>
+				  <tr>
+				    <td class="celda_borde_negro">TOTAL participación en promociones estacionarias </td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php // Response.write rsVac(10) ?>
+				        <?php echo $objPHPExcel->getActiveSheet()->getCell('K'.$que_fila)->getCalculatedValue(); ?>
+
+				      </div></td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php // Response.write rsVac(11) ?>
+				        <?php echo $objPHPExcel->getActiveSheet()->getCell('L'.$que_fila)->getCalculatedValue(); ?>
+				      </div></td>
+				  </tr>
+				</table>
+				<p class="texto-amarillo">Comentarios.</p>
+				<ul>
+				  <li>Las casillas en las que aparece la palabra "s" representan:
+				    <ul>
+				      <li> Utilización de algún soporte para comunicar la acción promocional (Folleto, prensa, cuña de radio...) </li>
+				      <li>Utilización de los diferentes regalos promocionales definidos por Vialider para el despliegue de la campaña. </li>
+				    </ul>
+				  </li>
+				  <li>(*) Campaña promocional pendiente de lanzamiento. </li>
+				  <li>(No) El taller no ha participado en la campaña promocional.</li>
+				  <li>Las conclusiones sobre el cumplimiento de este objetivo están definidas en el <em>Anexo I Revisión Sistema de Calidad Vialider</em>.</li>
+				</ul>
+				<p>&nbsp;</p>
+				<p class="texto-amarillo-bold">Objetivo 2.</p>
+				<p>Fomentar la implicación de los miembros del sistema de calidad en el programa.</p>
+				<p><u><strong>VALOR OBJETIVO:</strong></u> Todos los miembros del sistema deben:<br>
+				<ul>
+				  <li>Plantear al menos una propuesta de mejora en la zona interna Vialider.</li>
+				  <li>Valorar al menos 2 de las propuestas de mejora planteadas por los demás miembros del grupo. </li>
+				</ul>
+				</p>
+				<p><u><strong>PLAZO/FECHA PARA SU CUMPLIMIENTO</strong></u><strong>:</strong> Año 2013 <br>
+				</p>
+				<p><u><strong>VARIABLES:</strong></u> Zona Interna Vialider</p>
+				<ul>
+				  <li> Ver apartado propuestas de mejora en ZI.</li>
+				  <li> La propuesta planteada está definida en el anexo correspondiente a la revisión del sistema de calidad.</li>
+				  <li> Las propuestas votadas están explicadas en el anexo correspondiente de la revisión del sistema de calidad.</li>
+				  <li> Las conclusiones sobre el cumplimiento de este objetivo están definidas en el <em>Anexo I revisión Sistema de Calidad 
+				    Vialider</em>.</li>
+				</ul>
+				<table width="99%" border="0" cellpadding="3" cellspacing="5">
+				  <tr>
+				    <td class="celda_borde_negro">PROPUESTAS DE MEJORA PLANTEADAS</td>
+				    <td class="celda_borde_negro"><div align="center">
+				      <?php 
+						    if($objPHPExcel->getActiveSheet()->getCell('M'.$que_fila)->getCalculatedValue() == "*" || $objPHPExcel->getActiveSheet()->getCell('M'.$que_fila)->getCalculatedValue() == ""){
+						        // Response.write("-")
+						    		echo "-";
+						    }else{
+						        // Response.write rsVac(12)
+						    	echo $objPHPExcel->getActiveSheet()->getCell('M'.$que_fila)->getCalculatedValue();
+						    }
+					    ?>
+				      </div></td>
+				  </tr>
+				  <tr>
+				    <td class="celda_borde_negro">PROPUESTAS DE MEJORA VOTADAS</td>
+				    <td class="celda_borde_negro"><div align="center">
+					    <?php 
+							    if($objPHPExcel->getActiveSheet()->getCell('N'.$que_fila)->getCalculatedValue() == "*" || $objPHPExcel->getActiveSheet()->getCell('N'.$que_fila)->getCalculatedValue() == ""){
+							        // Response.write("-")
+							    		echo "-";
+							    }else{
+							        // Response.write rsVac(12)
+							    	echo $objPHPExcel->getActiveSheet()->getCell('N'.$que_fila)->getCalculatedValue();
+							    }
+						    ?>
+				      </div></td>
+				  </tr>
+				</table>
+				<p class="texto-amarillo-bold">Objetivo 3.</p>
+				<p>Contribución a la notoriedad de la enseña a través de acciones de comunicación local.</p>
+				<p><u><strong>VALOR OBJETIVO:</strong></u>Realizar al menos una acción de comunicación local dentro de los medios propuestos.<br>
+				  <u><strong>PLAZO/FECHA PARA SU CUMPLIMIENTO:</strong></u> Año 2013<br>
+				  <u><strong>VARIABLES:</strong></u> Acciones de comunicación local realizadas en el año 2013</p>
+				<table width="99%" border="0" cellpadding="3" cellspacing="5">
+				  <tr>
+				    <td class="celda_borde_negro">ACCIÓN DE COMUNICACIÓN LOCAL</td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php // Response.write rsVac(14) ?>
+				        <?php echo $objPHPExcel->getActiveSheet()->getCell('O'.$que_fila)->getCalculatedValue(); ?>
+				      </div></td>
+				  </tr>
+				</table>
+				<p class="texto-amarillo">Comentarios.</p>
+				<ul>
+				  <li>La palabra "SI" representa que ha realizado alguna acción de comunicación local dentro de los medios propuestos por el coordinador Vialider.</li>
+				  <li>Las conclusiones sobre el cumplimiento de este objetivo están definidas en el <em>Anexo I Revisión Sistema de Calidad Vialider</em>.</li>
+				</ul>
+				<p class="texto-amarillo-bold">Objetivo 4.</p>
+				<p>Actividad Industrial: Mejorar el grado de participación en las acciones promocionales lanzadas por la línea de producto camión.</p>
+				<p>(Sólo aplicable para aquellos PdV que trabajen el vehículo industrial)</p>
+				<p> <u><strong>VALOR OBJETIVO</strong></u><strong>: </strong>ACCIONES PROMOCIONALES</p>
+				<ul>
+				  <li>Participar en al menos una de las acciones promocionales propuestas por el coordinador del grupo.</li>
+				</ul>
+				<p><u><strong>PLAZO/FECHA PARA SU CUMPLIMIENTO</strong></u><strong>: </strong>Año 2013 </p>
+				<p><u><strong>VARIABLES:</strong></u></p>
+				<table width="99%" border="0" cellpadding="3" cellspacing="5">
+				  <tr>
+				    <td class="celda_borde_negro"><div align="center">CONCEPTO</div></td>
+				    <td class="celda_borde_negro"><div align="center">2013</div></td>
+				    <td class="celda_borde_negro"><div align="center">% de participación</div></td>
+				  </tr>
+				  <tr>
+				    <td class="celda_borde_negro"><div align="center">Nº de promociones propuestas</div></td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php 
+				    /* if(rsVac(15)="NO" or isnull(rsVac(15)) or rsVac(15)=""){
+				        // Response.write("0")
+				    }else{        
+				        // Response.write rsVac(15) 
+				    } */
+				    ?>
+							<?php
+							    if($objPHPExcel->getActiveSheet()->getCell('P'.$que_fila)->getCalculatedValue() == "NO" || $objPHPExcel->getActiveSheet()->getCell('P'.$que_fila)->getCalculatedValue() == ""){
+							        // Response.write("-")
+							    		echo "0";
+							    }else{
+							        // Response.write rsVac(12)
+							    	echo $objPHPExcel->getActiveSheet()->getCell('P'.$que_fila)->getCalculatedValue();
+							    }
+						    ?>
+				      </div></td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php // Response.write rsVac(17) ?>
+				        <?php echo $objPHPExcel->getActiveSheet()->getCell('R'.$que_fila)->getCalculatedValue(); ?>
+				      </div></td>
+				  </tr>
+				  <tr>
+				    <td class="celda_borde_negro"><div align="center">Nº de promociones realizadas</div></td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php 
+				    /*if(rsVac(16)="NO" or isnull(rsVac(16)) or rsVac(16)=""){
+				        // Response.write("0")
+				    }else{        
+				        // Response.write rsVac(16) 
+				    } */
+				    ?>
+							<?php
+							    if($objPHPExcel->getActiveSheet()->getCell('Q'.$que_fila)->getCalculatedValue() == "NO" || $objPHPExcel->getActiveSheet()->getCell('Q'.$que_fila)->getCalculatedValue() == ""){
+							        // Response.write("-")
+							    		echo "0";
+							    }else{
+							        // Response.write rsVac(12)
+							    	echo $objPHPExcel->getActiveSheet()->getCell('Q'.$que_fila)->getCalculatedValue();
+							    }
+						    ?>
+				      </div></td>
+				    <td class="celda_borde_negro"><div align="center"></div></td>
+				  </tr>
+				</table>
+				<ul>
+				  <li> Las conclusiones sobre el cumplimiento de este objetivo estan definidas en el <em>Anexo 1 revisión Sistema de Calidad Vialider</em>.</li>
+				</ul>
+				<p class="texto-amarillo-bold">Objetivo 5. Optimización en la utilización de las herramientas facilitadas para el desarrollo de la actividad industrial (Pneufinanz).</p>
+				<p>únicamente aplicable a aquellos clientes que, desarrollando actividad industrial, aplican la herramienta Pneufinanz.</p>
+				<p><strong><u>VALOR OBJETIVO:</u></strong> OPERACIONES PNEUFINANZ</p>
+				<ul>
+				  <li>Igualar o superar las operaciones con Pneufinanz por parte del taller respecto al año 2012.</li>
+				  <li>Incrementar el volumen del capital financiado con las operaciones Pneufinanz respecto al año 2012.</li>
+				</ul>
+				<p><u><strong>PLAZO/FECHA PARA SU CUMPLIMIENTO</strong></u><strong>:</strong> Año 2013 (Comparativa 2012-2013)</p>
+				<p><u><strong>VARIABLES:</strong></u></p>
+				<table width="99%" border="0" cellpadding="3" cellspacing="5">
+				  <tr>
+				    <td class="celda_borde_negro"><div align="center">CONCEPTO</div></td>
+				    <td class="celda_borde_negro"><div align="center">2012</div></td>
+				    <td class="celda_borde_negro"><div align="center">2013</div></td>
+				    <td class="celda_borde_negro"><div align="center">INCREMENTO</div></td>
+				  </tr>
+				  <tr>
+				    <td class="celda_borde_negro"><div align="center">Nº de operaciones</div></td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php // Response.write rsVac(18) ?>
+				        <?php echo $objPHPExcel->getActiveSheet()->getCell('S'.$que_fila)->getCalculatedValue(); ?>
+				      </div></td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php // Response.write rsVac(19) ?>
+				        <?php echo $objPHPExcel->getActiveSheet()->getCell('T'.$que_fila)->getCalculatedValue(); ?>
+				      </div></td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php // Response.write rsVac(20)*100 ?>
+				        <?php echo round($objPHPExcel->getActiveSheet()->getCell('U'.$que_fila)->getCalculatedValue() * 100, 2); ?>
+				        %</div></td>
+				  </tr>
+				  <tr>
+				    <td class="celda_borde_negro"><div align="center">Capital financiado</div></td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php // Response.write rsVac(21) ?>
+				        <?php echo $objPHPExcel->getActiveSheet()->getCell('V'.$que_fila)->getCalculatedValue(); ?>
+				      </div></td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php // Response.write rsVac(22) ?>
+				        <?php echo $objPHPExcel->getActiveSheet()->getCell('W'.$que_fila)->getCalculatedValue(); ?>
+				      </div></td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php // Response.write rsVac(23)*100 ?>
+				        <?php echo round($objPHPExcel->getActiveSheet()->getCell('X'.$que_fila)->getCalculatedValue() * 100, 2); ?>
+				        %</div></td>
+				  </tr>
+				</table>
+				<ul>
+				  <li> Las conclusiones sobre el cumplimiento de este objetivo estan definidas en el <em>Anexo 1 revisión Sistema de Calidad Vialider</em>.</li>
+				</ul>
+				<table width="99%" border="0" cellpadding="0" cellspacing="0">
+				  <tr>
+				    <td height="26" class="texto-marron">2. RESULTADO DE LA AUDITORIA FASE VI.</td>
+				    <td><div align="center">
+				        <?php 
+				    /* if((rsVac(3)<>"" AND not isnull(rsVac(3)))){
+				        // Response.write (rsVac(3) * 100 & " % ") 
+				    } */
+				    ?>
+							<?php
+							    if($objPHPExcel->getActiveSheet()->getCell('D'.$que_fila)->getCalculatedValue() <> ""){
+							    	echo $objPHPExcel->getActiveSheet()->getCell('D'.$que_fila)->getCalculatedValue() * 100; echo "%";
+							    }
+						    ?>&nbsp;
+				      </div></td>
+				  </tr>
+				</table>
+				<p><em>Anexo 2 Revisión Sistema de Calidad Vialider.</em></p>
+				<table width="99%" border="0" cellpadding="0" cellspacing="0">
+				  <tr>
+				    <td height="26" class="texto-marron">3. RESULTADOS DEL PROCESO DE ANALISIS DE DATOS FASE <span class="texto-marron-bold">VI</span></td>
+				  </tr>
+				</table>
+				<p class="texto-amarillo-bold"> 3.1. INDICADORES DE CALIDAD FASE VI</p>
+				<table width="99%" border="0" cellpadding="3" cellspacing="5">
+				  <tr>
+				    <td width="200" class="celda_borde_negro">INDICADOR 1</td>
+				    <td class="celda_borde_negro">Evaluación de proveedores</td>
+				  </tr>
+				</table>
+				<p>Ver zona interna de la Web Vialider.</p>
+				<table width="99%" border="0" cellpadding="3" cellspacing="5">
+				  <tr>
+				    <td width="200" class="celda_borde_negro">INDICADOR 2 </td>
+				    <td class="celda_borde_negro">Gestión de la formación</td>
+				  </tr>
+				</table>
+				<p>Ver anexos revisión sistema</p>
+				<table width="99%" border="0" cellpadding="3" cellspacing="5">
+				  <tr>
+				    <td width="200" class="celda_borde_negro">INDICADOR 3</td>
+				    <td class="celda_borde_negro">Participación en la Organización Vialider</td>
+				  </tr>
+				</table>
+				<table width="99%" border="0" cellpadding="3" cellspacing="5">
+				  <tr>
+				    <td width="200" class="celda_borde_negro">PARTICIPACIÓN 2013</td>
+				    <td class="celda_borde_negro">2013</td>
+				  </tr>
+				  <tr>
+				    <td width="200" class="celda_borde_negro">Convención</td>
+				    <td class="celda_borde_negro">
+				    	<?php // Response.write rsVac(24) ?>
+				    	<?php echo $objPHPExcel->getActiveSheet()->getCell('Y'.$que_fila)->getCalculatedValue(); ?>
+				    </td>
+				  </tr>
+				  <tr>
+				    <td width="200" class="celda_borde_negro">Reunión Regional</td>
+				    <td class="celda_borde_negro">
+				    	<?php // Response.write rsVac(25) ?>
+				    	<?php echo $objPHPExcel->getActiveSheet()->getCell('Z'.$que_fila)->getCalculatedValue(); ?>
+				    </td>
+				  </tr>
+				  <tr>
+				    <td width="200" class="celda_borde_negro">Grado de participación 2012</td>
+				    <td class="celda_borde_negro"><?php /*
+				    if(isnull(rsVac)=True){
+				    // Response.write rsVac(26) 
+				    }else{
+				    // Response.write rsVac(26)*100 & "%"
+				    } */
+				    ?>
+				  	<?php
+					    if($objPHPExcel->getActiveSheet()->getCell('AA'.$que_fila)->getCalculatedValue() <> "0"){
+					        echo $objPHPExcel->getActiveSheet()->getCell('AA'.$que_fila)->getCalculatedValue();
+					    }else{
+					        // Response.write rsVac(12)
+					    	echo $objPHPExcel->getActiveSheet()->getCell('AA'.$que_fila)->getCalculatedValue() * 100; echo "%";
+					    }
+				    ?>
+						  </td>
+				  </tr>
+				</table>
+				<br />
+				<table width="99%" border="0" cellpadding="3" cellspacing="5">
+				  <tr>
+				    <td width="200" class="celda_borde_negro">INDICADOR 4 </td>
+				    <td class="celda_borde_negro">Nº encuestas realizadas</td>
+				  </tr>
+				</table>
+				<table width="99%" border="0" cellpadding="3" cellspacing="5">
+				  <tr>
+				    <td width="200" class="celda_borde_negro">
+				    	<?php // Response.write rsVac(27) ?>
+				    	<?php echo $objPHPExcel->getActiveSheet()->getCell('AB'.$que_fila)->getCalculatedValue(); ?>
+				    </td>
+				  </tr>
+				</table>
+				<br />
+				<table width="99%" border="0" cellpadding="3" cellspacing="5">
+				  <tr>
+				    <td class="celda_borde_negro">INDICADOR 5 </td>
+				    <td colspan="10" class="celda_borde_negro"><div align="center">Puntuaciones encuestas realizadas</div></td>
+				  </tr>
+				  <tr>
+				    <td rowspan="2" class="celda_borde_negro"><div align="center">TALLER</div></td>
+				    <td class="celda_borde_negro"><div align="center">P1</div></td>
+				    <td class="celda_borde_negro"><div align="center">P2</div></td>
+				    <td class="celda_borde_negro"><div align="center">P3</div></td>
+				    <td class="celda_borde_negro"><div align="center">P4</div></td>
+				    <td class="celda_borde_negro"><div align="center">P5</div></td>
+				    <td class="celda_borde_negro"><div align="center">P6</div></td>
+				    <td class="celda_borde_negro"><div align="center">P7</div></td>
+				    <td class="celda_borde_negro"><div align="center">P8</div></td>
+				    <td class="celda_borde_negro"><div align="center">P9</div></td>
+				    <td class="celda_borde_negro"><div align="center">Media</div></td>
+				  </tr>
+				  <tr>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php /*
+				    if(isnull(rsVac(28))=True){
+				        // Response.write rsVac(28) 
+				    }else{
+				        // Response.write Round(rsVac(28),2) 
+				    }*/
+				    ?>
+						<?php
+					    	echo round($objPHPExcel->getActiveSheet()->getCell('AC'.$que_fila)->getCalculatedValue(), 2);
+				    ?> 
+				      </div></td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php /*if(isnull(rsVac(29))=True){
+				        // Response.write rsVac(29) 
+				    }else{
+				        // Response.write Round(rsVac(29),2) 
+				    } */?>
+				    <?php
+					    	echo round($objPHPExcel->getActiveSheet()->getCell('AD'.$que_fila)->getCalculatedValue(), 2);
+				    ?> 
+				      </div></td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php /*if(isnull(rsVac(30))=True){
+				        // Response.write rsVac(30) 
+				    }else{
+				        // Response.write Round(rsVac(30),2) 
+				    }*/ ?>
+				    <?php
+					    	echo round($objPHPExcel->getActiveSheet()->getCell('AE'.$que_fila)->getCalculatedValue(), 2);
+				    ?> 
+				      </div></td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php /*if(isnull(rsVac(31))=True){
+				        // Response.write rsVac(31) 
+				    }else{
+				        // Response.write Round(rsVac(31),2) 
+				    }*/ ?>
+				    <?php
+					    	echo round($objPHPExcel->getActiveSheet()->getCell('AF'.$que_fila)->getCalculatedValue(), 2);
+				    ?> 
+				      </div></td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php /*if(isnull(rsVac(32))=True){
+				        // Response.write rsVac(32) 
+				    }else{
+				        // Response.write Round(rsVac(32),2) 
+				    }*/ ?>
+				    <?php
+					    	echo round($objPHPExcel->getActiveSheet()->getCell('AG'.$que_fila)->getCalculatedValue(), 2);
+				    ?> 
+				      </div></td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php /*if(isnull(rsVac(33))=True){
+				        // Response.write rsVac(33) 
+				    }else{
+				        // Response.write Round(rsVac(33),2) 
+				    }*/ ?>
+				    <?php
+					    	echo round($objPHPExcel->getActiveSheet()->getCell('AH'.$que_fila)->getCalculatedValue(), 2);
+				    ?> 
+				      </div></td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php /*if(isnull(rsVac(34))=True){
+				        // Response.write rsVac(34) 
+				    }else{
+				        // Response.write Round(rsVac(34),2) 
+				    }*/ ?>
+				    <?php
+					    	echo round($objPHPExcel->getActiveSheet()->getCell('AI'.$que_fila)->getCalculatedValue(), 2);
+				    ?> 
+				      </div></td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php /*if(isnull(rsVac(35))=True){
+				        // Response.write rsVac(35) 
+				    }else{
+				        // Response.write Round(rsVac(35),2) 
+				    }*/ ?>
+				    <?php
+					    	echo round($objPHPExcel->getActiveSheet()->getCell('AJ'.$que_fila)->getCalculatedValue(), 2);
+				    ?> 
+				      </div></td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php /*if(isnull(rsVac(36))=True){
+				        // Response.write rsVac(36) 
+				    }else{
+				        // Response.write Round(rsVac(36),2) 
+				    }*/ ?>
+				    <?php
+					    	echo round($objPHPExcel->getActiveSheet()->getCell('AK'.$que_fila)->getCalculatedValue(), 2);
+				    ?> 
+				      </div></td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php 
+				   /* variable_con_decimales = rsVac(37)
+				    if(isnull(variable_con_decimales)=False){
+				        variable_con_decimales = Round(variable_con_decimales,2)
+				    }
+				    // Response.write variable_con_decimales
+                    */
+				    ?>
+				    <?php
+					    	echo round($objPHPExcel->getActiveSheet()->getCell('AL'.$que_fila)->getCalculatedValue(), 2);
+				    ?> 
+				      </div></td>
+				  </tr>
+				</table>
+				<br />
+				<table width="99%" border="0" cellspacing="5" cellpadding="3">
+				  <tr>
+				    <td rowspan="2" class="celda_borde_negro">INDICADOR 6</td>
+				    <td class="celda_borde_negro"><div align="center">Evaluación de la satisfacción del cliente TC</div></td>
+				  </tr>
+				</table>
+				<table width="99%" border="0" cellspacing="5" cellpadding="3">
+				  <tr>
+				    <td rowspan="2" class="celda_borde_negro">RESULTADO PASADA AUDITORIA DE CALIDAD</td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php // Response.write rsVac(38) ?>
+				        <?php echo $objPHPExcel->getActiveSheet()->getCell('AM'.$que_fila)->getCalculatedValue(); ?>
+				      </div></td>
+				  </tr>
+				</table>
+				<br />
+				<table width="99%" border="0" cellpadding="3" cellspacing="5">
+				  <tr>
+				    <td width="200" class="celda_borde_negro">INDICADOR 7</td>
+				    <td class="celda_borde_negro">Evaluación de la satisfacción del cliente PL</td>
+				  </tr>
+				</table>
+				<table width="99%" border="0" cellpadding="3" cellspacing="5">
+				  <tr>
+				    <td rowspan="2" class="celda_borde_negro">RESULTADO PASADA AUDITORIA DE CALIDAD</td>
+				    <td class="celda_borde_negro"><div align="center">
+				        <?php // Response.write rsVac(39) ?>
+				        <?php echo $objPHPExcel->getActiveSheet()->getCell('AN'.$que_fila)->getCalculatedValue(); ?>
+				      </div></td>
+				  </tr>
+				</table>
+				<table width="99%" border="0" cellpadding="3" cellspacing="5">
+				  <tr>
+				    <td width="200" class="celda_borde_negro">INDICADOR 8</td>
+				    <td class="celda_borde_negro">Participación en el talonario Vialider</td>
+				  </tr>
+				</table>
+				<table width="99%" border="0" cellspacing="5" cellpadding="3">
+				  <tr>
+				    <td rowspan="2" class="celda_borde_negro">Alta en el Sistema:
+				      <?php // Response.write rsVac(40) ?>
+				      <?php echo $objPHPExcel->getActiveSheet()->getCell('AO'.$que_fila)->getCalculatedValue(); ?>
+				    </td>
+				  </tr>
+				</table>
+				<p>(*) Hasta la fecha de la última actualización de este informe </p>
+				<ul>
+				  <li> Las conclusiones sobre el cumplimiento de los indicadores estan definidas en el <em>Anexo 3.1 revisión 
+				    Sistema de Calidad Vialider.</em></li>
+				</ul>
+				<p class="texto-amarillo-bold"> 3.2 NO CONFORMIDADES Y RECLAMACIONES</p>
+				<p><em>Anexo 3.2 revisión Sistema de Calidad Vialider.</em></p>
+				<p class="texto-amarillo-bold">3.3 ACCIONES CORRECTIVAS / PREVENTIVAS</p>
+				<p><em>Pueden verse las acciones correctivas/preventivas llevadas a cabo así como el estado de las mismas en el apartado de la Zona Interna: Acciones Correctivas/Preventivas.</em></p>
+				<p class="texto-amarillo-bold">3.4 DESEMPEÑO DE LOS PROVEEDORES</p>
+				<p><em>Pueden verse las valoraciones anuales sobre el desempeño de los principales  proveedores de la empresa en el apartado de la Zona Interna: Evaluación de Proveedores.</em></p>
+				<table width="99%" border="0" cellpadding="0" cellspacing="0">
+				  <tr>
+				    <td height="26" class="texto-marron">4. RECOMENDACIONES PARA LA MEJORA FASE <span class="texto-marron-bold">VI</span>.</td>
+				  </tr>
+				</table>
+				<p>Este punto ya se recoge en:</p>
+				<ul>
+				  <li>Objetivo nº 2 del sistema <em>de Calidad Vialider.</em></li>
+				  <li><em>Propuestas de Mejora: zona interna de la Web Vialider.</em></li>
+				</ul>
+				<table width="99%" border="0" cellpadding="0" cellspacing="0">
+				  <tr>
+				    <td height="26" class="texto-marron">5. SATISFACCIÓN DEL CLIENTE FASE <span class="texto-marron-bold">VI</span>.</td>
+				  </tr>
+				</table>
+				<p> Este punto ya se recoge en:</p>
+				<ul>
+				  <li>Indicadores nº 4, 5, 6 y 7<em> sistema de Calidad Vialider.</em></li>
+				</ul>
+				<table width="99%" border="0" cellpadding="0" cellspacing="0">
+				  <tr> 
+				    <!--td height="26" width="20">&nbsp;</td-->
+				    <td height="26" class="texto-marron">6. INFRAESTRUCTURA DE LA ORGANIZACIÓN FASE <span class="texto-marron-bold">VI</span>.</td>
+				    <!--td width="20" height="26"></td--> 
+				  </tr>
+				</table>
+				<p>A continuación se detallan las infraestructuras en las que se ha desplegado el sistema de calidad Vialider, así como las herramientas necesarias para el desempeño de todas las actividades encaminadas a la consecución de los objetivos marcados en el Sistema de Calidad Vialider.(*)</p>
+				<p>1. <u>Taller:</u> las diferentes actividades propias del negocio se han desarrollado en los puntos de venta.</p>
+				<p>Estos son los requisitos exigidos en el certificado de calidad Michelin</p>
+				<ul>
+				  <li>Las instalaciones limpias.</li>
+				  <li>La zona de recepción existe y está identificada.</li>
+				  <li>Existen aseos independientes y por sexos para el público limpios y equipados.</li>
+				  <li>El acabado de la fachada es uniforme, sin desperfectos y está limpia, los luminosos en perfecto estado y funcionan, y además aparece el nombre comercial, directorio de actividades y el horario de atención al cliente.</li>
+				  <li>Las tablas de presión, carteles y expositores están limpios, equipados y en buen estado.</li>
+				  <li>Están disponibles los precios de producto y visibles los precios de servicios.</li>
+				  <li>Hay separación de las áreas de trabajo de turismo y camión.</li>
+				</ul>
+				<p>2. <u>Maquinaria y utillaje</u>: se considera maquinaria a toda la necesaria para el ejercicio habitual de las actividades propias del negocio.</p>
+				<p>Toda la maquinaria utilizada en el taller está dividida en dos grupos:</p>
+				<ol>
+				  <li>Máquinas susceptibles de calibración/verificación:
+				    <ol>
+				      <li>1. Manómetros</li>
+				      <li>2. Alineadoras</li>
+				      <li>3. Equilibradoras</li>
+				      <li>4. Llaves dinamométricas</li>
+				      <li>5. Llaves de torsión</li>
+				    </ol>
+				  </li>
+				  <li>Máquinas susceptibles de mantenimiento:
+				    <ol>
+				      <li>1. Desmontadoras</li>
+				      <li>2. Gatos hidráulicos</li>
+				      <li>3. Elevadores</li>
+				      <li>4. Vehículos</li>
+				      <li>5. Compresores</li>
+				      <li>6. Pistolas de impacto</li>
+				      <li>7. Pre-ITV</li>
+				    </ol>
+				  </li>
+				</ol>
+				<p>3.<u> Aplicaciones informáticas:</u> para garantizar el funcionamiento de la empresa y para cumplir las directrices 
+				  marcadas por el sistema de calidad Vialider se han utilizado las siguientes herramientas:</p>
+				<ul>
+				  <li>8. Zona interna de la Web Vialider</li>
+				  <li>9. Pagina Web Vialider</li>
+				  <li>10. Sistema informático de gestión de la empresa</li>
+				</ul>
+				<table width="99%" border="0" cellpadding="0" cellspacing="0">
+				  <tr>
+				    <td height="26" class="texto-marron">7. AMBIENTE DE TRABAJO FASE <span class="texto-marron-bold">VI</span>.</td>
+				  </tr>
+				</table>
+				<p>Ambiente de trabajo: a fin de determinar si las condiciones del ambiente de trabajo son las adecuadas para lograr satisfacer las necesidades y expectativas de los clientes.</p>
+				<p>No se han detectado no conformidades/desviaciones en el ambiente de trabajo por lo que se considera adecuado.</p>
+				<table width="99%" border="0" cellpadding="0" cellspacing="0">
+				  <tr>
+				    <td height="26" class="texto-marron">8. NECESIDADES DE RECURSOS FASE <span class="texto-marron-bold">VI</span>.</td>
+				  </tr>
+				</table>
+				<p>Los comentarios u observaciones (si las hubiera) sobre las necesidades de recursos en el taller (maquinaria, equipos, infraestructura, software, etc.) están definidos en el<em> Anexo 6 revisión Sistema de Calidad Vialider.</em></p>
+				<table width="99%" border="0" cellpadding="0" cellspacing="0">
+				  <tr>
+				    <td height="26" class="texto-marron">9. POLITICA DE CALIDAD FASE <span class="texto-marron-bold">VI</span>.</td>
+				  </tr>
+				</table>
+				<p>La política de Calidad del grupo ha sido revisada por el Coordinador Vialider no habiendo sufrido modificación alguna respecto a su versión actual.</p>
+				<table width="99%" border="0" cellpadding="0" cellspacing="0">
+				  <tr>
+				    <td height="26" class="texto-marron">10. PERSONAS QUE INTERVIENEN EN LA ELABORACIÓN DE LA REVISION DEL SISTEMA FASE <span class="texto-marron-bold">VI</span>.</td>
+				  </tr>
+				</table>
+				<br />
+				<table width="99%" border="0" cellpadding="3" cellspacing="5">
+				  <tr>
+				    <td width="200" class="celda_borde_negro">Gestor de calidad taller</td>
+				    <td class="celda_borde_negro">
+				    	<?php // Response.write rsVac(41) ?>
+				    	<?php echo $objPHPExcel->getActiveSheet()->getCell('AP'.$que_fila)->getCalculatedValue(); ?>
+				    </td>
+				  </tr>
+				  <tr>
+				    <td class="celda_borde_negro">Gestor de calidad Vialider</td>
+				    <td class="celda_borde_negro">Beatriz Ruiz de Temiño</td>
+				  </tr>
+				</table>
+				<br />
+				<table width="99%" border="0" cellpadding="0" cellspacing="0">
+				  <tr> 
+				    <!--td height="26" width="20">&nbsp;</td-->
+				    <td height="26" class="texto-marron">11. ANEXOS FASE <span class="texto-marron-bold">VI</span>.</td>
+				    <!--td width="20" height="26"></td--> 
+				  </tr>
+				</table>
+				<p> En el cuadro se definen los anexos siguientes:</p>
+				<table width="99%" border="0" cellpadding="3" cellspacing="5">
+				  <tr>
+				    <td class="celda_borde_negro">Anexo 1 revisión Sistema de Calidad Vialider</td>
+				    <td class="celda_borde_negro">Objetivos de calidad</td>
+				  </tr>
+				  <tr>
+				    <td class="celda_borde_negro">Anexo 2 revisión Sistema de Calidad Vialider</td>
+				    <td class="celda_borde_negro">Resultado de la auditorias (Auditoriía Interna ISO)</td>
+				  </tr>
+				  <tr>
+				    <td class="celda_borde_negro">Anexo 3.1 revisión Sistema de Calidad Vialider</td>
+				    <td class="celda_borde_negro">Indicadores de calidad Sistema de Calidad Vialider</td>
+				  </tr>
+				  <tr>
+				    <td class="celda_borde_negro"> Anexo 3.2 revisión Sistema de Calidad Vialider</td>
+				    <td class="celda_borde_negro">No conformidades y reclamaciones de procesos y productos, ...)</td>
+				  </tr>
+				  <tr>
+				    <td class="celda_borde_negro">Anexo 4 revisión Sistema de Calidad Vialider</td>
+				    <td class="celda_borde_negro">Recomendaciones para la mejora.</td>
+				  </tr>
+				  <tr>
+				    <td class="celda_borde_negro">Anexo 5 revisión Sistema de Calidad Vialider</td>
+				    <td class="celda_borde_negro">Satisfacción del cliente</td>
+				  </tr>
+				  <tr>
+				    <td class="celda_borde_negro">Anexo 6 revisión Sistema de Calidad Vialider</td>
+				    <td class="celda_borde_negro">Necesidades de recursos</td>
+				  </tr>
+				  <tr>
+				    <td class="celda_borde_negro">Anexo 7 revisión Sistema de Calidad Vialider</td>
+				    <td class="celda_borde_negro">Resumen de la formación recibida </td>
+				  </tr>
+				  <tr>
+				    <td class="celda_borde_negro">Anexo 8 revisión Sistema de Calidad Vialider</td>
+				    <td class="celda_borde_negro">Análisis de revisiones anteriores </td>
+				  </tr>
+				  <tr>
+				    <td class="celda_borde_negro">Anexo 9 revisión Sistema de Calidad Vialider</td>
+				    <td class="celda_borde_negro">Cambios que pueden afectar al sistema </td>
+				  </tr>
+				</table>
+				<input type="button" name="imprimir" value="Imprimir" onClick="window.print();">
+
+<?php
+		}else{ ?>
+			<p>Actualmente no tiene datos para esta sección.</p>
+		<?php }
+
+	} ?>
